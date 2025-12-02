@@ -8,9 +8,6 @@ import hashlib
 from pathlib import Path
 from DATABASES.CreateDatabases import initialize_wifi_database
 
-# sys.path.append(str(Path(__file__).parent / "DATABASES"))
-# import CreateDatabases
-
 # ------------------------------------------ VARIABLES ------------------------------------------ #
 INTERFACE = "alfa0"
 
@@ -26,6 +23,8 @@ CHANNELS_24 = [1, 6, 11]
 CHANNELS_50 = [36, 40, 44, 48, 149, 153, 157, 161]
 
 MAC_RE = re.compile(r"([0-9a-f]{2}:){5}[0-9a-f]{2}")
+
+stop_event = threading.Event()
 # ----------------------------------------------------------------------------------------------- #
 
 ## DATABASE FUNCTIONS
@@ -36,6 +35,49 @@ def initialize_database():
 # Hash MAC address for storage in database
 def hash_addr(addr: str) -> str:
     return hashlib.sha3_256(SALT + addr.encode()).hexdigest()
+
+# Parse Airodump CSV
+def parse_airodump_csv(csv_path):
+    try:
+        with open(csv_path, "r", errors="ignore") as f:
+            lines = f.readlines()
+    except FileNotFoundError:
+        return
+
+    in_client_section = False
+
+    for line in lines:
+        line = line.strip()
+
+        # Section separator
+        if line.startswith("Station MAC,"):
+            in_client_section = True
+            continue
+
+        if not in_client_section:
+            continue  # Skip AP table
+
+        parts = [p.strip() for p in line.split(",")]
+
+        # Ensure it looks like a station row
+        if len(parts) < 6:
+            continue
+
+        mac = parts[0]
+        if not MAC_RE.match(mac.lower()):
+            continue
+
+        # RSSI (column 3 in client section)
+        try:
+            rssi = int(parts[3])
+        except:
+            rssi = None
+
+        # Add to database
+        try:
+            add_device(mac=mac, rssi=rssi, device_name="wifi", manufacturer="airodump")
+        except sqlite3.Error as db_err:
+            print(f"Database error for MAC {mac}: {db_err}")
 
 # Add or update a device to the database
 def add_device(mac: str, rssi: int = None, device_name: str = None, manufacturer: str = None):
@@ -60,99 +102,51 @@ def add_device(mac: str, rssi: int = None, device_name: str = None, manufacturer
     connection.close()
     return hashed_mac
 
-## CHANNEL HOPPING FUNCTION
-def channel_hopper():
-    while True:
-        for channel in CHANNELS_24 + CHANNELS_50:
-            subprocess.run(["sudo", "iw", "dev", INTERFACE, "set", "channel", str(channel)],
-                           stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-            time.sleep(CHANNEL_HOP_INTERVAL)
-
 ## PACKET CAPTURE FUNCTION
-# def capture():
-#     proc = subprocess.Popen(
-#         [
-#             "tshark", "-I", "-i", INTERFACE,
-#             "-Y", "wlan.fc.type_subtype == 4 || wlan.fc.type_subtype == 8",
-#             "-T", "fields",
-#             "-e", "wlan.sa", "-e", "wlan.ta",
-#             "-e", "radiotap.dbm_antsignal",
-#             "-e", "frame.time_epoch"
-#         ],
-#         stdout=subprocess.PIPE,
-#         stderr=subprocess.PIPE,
-#         text=True
-#     )
-
-#     for line in proc.stdout:
-#         parts = line.strip().split("\t")
-#         if len(parts) < 1:
-#             continue
-
-#         macs = [p for p in parts[:2] if MAC_RE.match(p)]
-#         signal = int(parts[2]) if len(parts) > 2 and parts[2] else None
-#         ts = float(parts[3]) if len(parts) > 3 else time.time()
-
-#         for mac in macs:
-#             # Save to database
-#             add_device(mac=mac, device_name="wifi", rssi=signal, manufacturer="none")
-
 def capture():
+    print(f"\n[+] Starting airodump-ng capture...")
+    print("[ ] Screen output is caputred by devnull to increase speed")
+    print(f"[ ] Check current database entries with 'sqlite3 {WIFI_DATABASE_PATH}'")
+
+    cmd = [
+        "sudo",
+        "airodump-ng",
+        "--manufacturer",      # optional, gives vendor
+        "--write", "/tmp/airodump",
+        "--output-format", "csv",
+        INTERFACE
+    ]
+
+    proc = subprocess.Popen(
+        cmd,
+        stdout=subprocess.DEVNULL,   # ignore screen output
+        stderr=subprocess.DEVNULL
+    )
+
+    csv_path = Path("/tmp/airodump-01.csv")
+
+    last_size = 0
+
     try:
-        proc = subprocess.Popen(
-            [
-                "tshark", "-I", "-i", INTERFACE,
-                "-Y", "wlan.fc.type_subtype == 4 || wlan.fc.type_subtype == 8",
-                "-T", "fields",
-                "-e", "wlan.sa", "-e", "wlan.ta",
-                "-e", "radiotap.dbm_antsignal",
-                "-e", "frame.time_epoch"
-            ],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            text=True
-        )
-    except FileNotFoundError:
-        print("tshark not found. Please install tshark.")
-        return
-    except Exception as e:
-        print(f"Failed to start capture: {e}")
-        return
+        while True:
+            if csv_path.exists():
+                size = csv_path.stat().st_size
+                if size != last_size:
+                    last_size = size
+                    parse_airodump_csv(csv_path)
+            time.sleep(1)
 
-    # Process lines
-    for line in proc.stdout:
-        print(line.strip())
-        try:
-            parts = line.strip().split("\t")
-            if len(parts) < 1:
-                continue
-
-            macs = [p for p in parts[:2] if MAC_RE.match(p)]
-
-            try:
-                signal = int(parts[2]) if len(parts) > 2 and parts[2] else None
-            except ValueError:
-                signal = None
-
-            try:
-                ts = float(parts[3]) if len(parts) > 3 else time.time()
-            except ValueError:
-                ts = time.time()
-
-            for mac in macs:
-                # Save to database safely
-                try:
-                    add_device(mac=mac, device_name="wifi", rssi=signal, manufacturer="none")
-                except sqlite3.Error as db_err:
-                    print(f"Database error for MAC {mac}: {db_err}")
-
-        except Exception as line_err:
-            print(f"Error processing line: {line_err}")
-
+    except KeyboardInterrupt:
+        print(f"\n[!] Stopping capture...")
+        proc.terminate()
 
 ## MAIN FUNCTION
 if __name__ == "__main__":
     initialize_database()
-    threading.Thread(target=channel_hopper, daemon=True).start()
-    while True:
+    
+    try:
         capture()
+    except KeyboardInterrupt:
+        print("\n[!] CTRL+C received. Exiting cleanly...")
+        stop_event.set()
+        print("[+] Shutdown complete.")

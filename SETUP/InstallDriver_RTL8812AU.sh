@@ -42,7 +42,7 @@ make dkms_install
 
 ## RELOAD DRIVER
 modprobe -r 8812au 2>/dev/null || true
-modprobe 88XXau
+modprobe 8812au
 
 ## CONFIRM DRIVER
 ip link
