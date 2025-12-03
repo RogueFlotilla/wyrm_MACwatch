@@ -55,8 +55,10 @@ sed -i "\|0bda|d" "$ruleFile" 2>/dev/null || true
 sed -i "\|8812|d" "$ruleFile" 2>/dev/null || true
 
 # Add the new rule
-echo "SUBSYSTEM==\"net\", ACTION==\"add\", ATTR{address}==\"$alfaMAC\", NAME=\"$alfaNAME\"" | sudo tee -a "$ruleFile" >/dev/null
-echo "SUBSYSTEM==\"net\", ACTION==\"add\", ATTRS{idVendor}==\"0bda\", ATTRS{idProduct}==\"8812\", NAME=\"$alfaNAME\"" | sudo tee -a "$ruleFile" >/dev/null
+echo "SUBSYSTEM==\"net\", ACTION==\"add\", ATTR{address}==\"$alfaMAC\", \
+   NAME=\"$alfaNAME\"" | sudo tee -a "$ruleFile" >/dev/null
+echo "SUBSYSTEM==\"net\", ACTION==\"add\", ATTRS{idVendor}==\"0bda\", ATTRS{idProduct}==\"8812\", \
+   NAME=\"$alfaNAME\"" | sudo tee -a "$ruleFile" >/dev/null
 
 # Reload udev
 udevadm control --reload-rules
