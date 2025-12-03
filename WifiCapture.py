@@ -24,12 +24,9 @@ FP_DATABASE_PATH = DATABASE_DIRECTORY / "flagged_persons.db" # SQLite database o
 CSV_DATA_PATH = Path("/home/deb-uloq/source/repos/wyrm_MACwatch/DATA/IEEE-standards-oui.csv")
 
 SALT = b"GDPR_Compliance" # For hashing MACs (GDPR Compliance; future proof for US laws possibly)
-CHANNEL_HOP_INTERVAL = 5  # seconds
-MAC_DECAY_SECONDS = 300   # optional in-memory cache decay
 
 MAC_RE = re.compile(r"([0-9a-f]{2}:){5}[0-9a-f]{2}")
 
-stop_event = threading.Event()
 # ----------------------------------------------------------------------------------------------- #
 
 ## DATABASE FUNCTIONS
