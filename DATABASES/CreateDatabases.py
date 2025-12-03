@@ -2,22 +2,12 @@
 
 import csv
 import sqlite3
+import variables as variable
 from pathlib import Path
-
-# ------------------------------------------ VARIABLES ------------------------------------------ #
-DATABASE_DIRECTORY = Path("/opt/wyrm/MACwatch/Database") # Local path to store SQLite databases
-DATABASE_DIRECTORY.mkdir(parents=True, exist_ok=True)  # Create the directory if it doesn't exist
-FP_CSV_PATH = Path("/home/deb-uloq/source/repos/wyrm_MACwatch/DATA/flagged_persons.csv")
-
-WIFI_DATABASE_PATH = DATABASE_DIRECTORY / "wifi_devices.db" # SQLite database of WiFi MACs
-BT_DATABASE_PATH = DATABASE_DIRECTORY / "bt_devices.db" # SQLite database of BT MACs
-FP_DATABASE_PATH = DATABASE_DIRECTORY / "flagged_persons.db" # SQLite database of BT MACs
-# ----------------------------------------------------------------------------------------------- #
-
 
 ## CREATE WIFI DATABASE
 def initialize_wifi_database():
-    connection = sqlite3.connect(WIFI_DATABASE_PATH)
+    connection = sqlite3.connect(variable.WIFI_DATABASE_PATH)
     cursor = connection.cursor()
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS wifi_devices (
@@ -32,11 +22,11 @@ def initialize_wifi_database():
     ''')
     connection.commit()
     connection.close()
-    print(f"WiFi database initialized at {WIFI_DATABASE_PATH}")
+    print(f"[✓] WiFi database initialized at {variable.WIFI_DATABASE_PATH}")
 
 ## CREATE BLUETOOTH DATABASE
 def initialize_bt_database():
-    connection = sqlite3.connect(BT_DATABASE_PATH)
+    connection = sqlite3.connect(variable.BT_DATABASE_PATH)
     cursor = connection.cursor()
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS bt_devices (
@@ -51,11 +41,11 @@ def initialize_bt_database():
     ''')
     connection.commit()
     connection.close()
-    print(f"Bluetooth database initialized at {BT_DATABASE_PATH}")
+    print(f"[✓] Bluetooth database initialized at {variable.BT_DATABASE_PATH}")
 
 ## CREATE BANNED PERSON DATABASE
 def initialize_fp_database():
-    connection = sqlite3.connect(FP_DATABASE_PATH)
+    connection = sqlite3.connect(variable.FP_DATABASE_PATH)
     cursor = connection.cursor()
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS flagged_persons (
@@ -71,8 +61,8 @@ def initialize_fp_database():
     ''')
 
     # Load Data CSV and insert Data to Table
-    if FP_CSV_PATH.exists():
-        with open(FP_CSV_PATH, "r", encoding="utf-8", errors="ignore") as f:
+    if variable.FP_CSV_PATH.exists():
+        with open(variable.FP_CSV_PATH, "r", encoding="utf-8", errors="ignore") as f:
             reader = csv.DictReader(f)
             for row in reader:
                 try:
@@ -87,14 +77,19 @@ def initialize_fp_database():
                         row["Date_Added"].strip()
                     ))
                 except sqlite3.Error as e:
-                    print(f"Error inserting {row['MAC_Address']}: {e}")
+                    print(f"[⚠] Error inserting {row['MAC_Address']}: {e}")
     
     connection.commit()
     connection.close()
-    print(f"Bluetooth database initialized at {FP_DATABASE_PATH}")
+    print(f"[✓] Flagged persons database initialized at {variable.FP_DATABASE_PATH}")
 
 ## MAIN FUNCTION
 if __name__ == "__main__":
-    initialize_wifi_database()
-    initialize_bt_database()
-    initialize_fp_database
+    try:
+        print("[⋯] Creating all databases...")
+        initialize_wifi_database()
+        initialize_bt_database()
+        initialize_fp_database
+        print("[✓] Creating databases complete")
+    except:
+        print("[⚠] Error creating databases")

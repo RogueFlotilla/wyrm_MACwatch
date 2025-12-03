@@ -1,48 +1,52 @@
 #!/usr/bin/env python3
 
 import sqlite3
+import variables as variable
 from pathlib import Path
-
-# ------------------------------------------ VARIABLES ------------------------------------------ #
-DATABASE_DIRECTORY = Path("/opt/wyrm/MACwatch/Database") # Local path to store SQLite databases
-DATABASE_DIRECTORY.mkdir(parents=True, exist_ok=True)  # Create the directory if it doesn't exist
-FP_CSV_PATH = Path("/home/deb-uloq/source/repos/wyrm_MACwatch/DATA/flagged_persons.csv")
-
-WIFI_DATABASE_PATH = DATABASE_DIRECTORY / "wifi_devices.db" # SQLite database of WiFi MACs
-BT_DATABASE_PATH = DATABASE_DIRECTORY / "bt_devices.db" # SQLite database of BT MACs
-FP_DATABASE_PATH = DATABASE_DIRECTORY / "flagged_persons.db" # SQLite database of BT MACs
-# ----------------------------------------------------------------------------------------------- #
-
 
 ## CLEAR WIFI DATABASE
 def clear_wifi_database():
-    connection = sqlite3.connect(WIFI_DATABASE_PATH)
-    cursor = connection.cursor()
-    cursor.execute("DELETE FROM wifi_devices")
-    connection.commit()
-    connection.close()
-    print(f"Cleared all entries from {WIFI_DATABASE_PATH}")
+    if variable.WIFI_DATABASE_PATH.exists():
+        connection = sqlite3.connect(variable.WIFI_DATABASE_PATH)
+        cursor = connection.cursor()
+        cursor.execute("DELETE FROM wifi_devices")
+        connection.commit()
+        connection.close()
+        print(f"[✓] Cleared all entries from {variable.WIFI_DATABASE_PATH}")
+    else:
+        print(f"[›] Database not found, skipping: {variable.WIFI_DATABASE_PATH}")
 
 ## CLEAR BLUETOOTH DATABASE
 def clear_bt_database():
-    connection = sqlite3.connect(BT_DATABASE_PATH)
-    cursor = connection.cursor()
-    cursor.execute("DELETE FROM bt_devices")
-    connection.commit()
-    connection.close()
-    print(f"Cleared all entries from {BT_DATABASE_PATH}")
+    if variable.BT_DATABASE_PATH.exists():
+        connection = sqlite3.connect(variable.BT_DATABASE_PATH)
+        cursor = connection.cursor()
+        cursor.execute("DELETE FROM bt_devices")
+        connection.commit()
+        connection.close()
+        print(f"[✓] Cleared all entries from {variable.BT_DATABASE_PATH}")
+    else:
+        print(f"[›] Database not found, skipping: {variable.BT_DATABASE_PATH}")
 
 ## CLEAR BLUETOOTH DATABASE
 def clear_fp_database():
-    connection = sqlite3.connect(FP_DATABASE_PATH)
-    cursor = connection.cursor()
-    cursor.execute("DELETE FROM flagged_persons")
-    connection.commit()
-    connection.close()
-    print(f"Cleared all entries from {FP_DATABASE_PATH}")
+    if variable.FP_DATABASE_PATH.exists():
+        connection = sqlite3.connect(variable.FP_DATABASE_PATH)
+        cursor = connection.cursor()
+        cursor.execute("DELETE FROM flagged_persons")
+        connection.commit()
+        connection.close()
+        print(f"[✓] Cleared all entries from {variable.FP_DATABASE_PATH}")
+    else:
+        print(f"[›] Database not found, skipping: {variable.FP_DATABASE_PATH}")
 
 ## MAIN FUNCTION
 if __name__ == "__main__":
-    clear_wifi_database()
-    clear_bt_database()
-    clear_fp_database()
+    try:
+        print("[⋯] Clearing all database...")
+        clear_wifi_database()
+        clear_bt_database()
+        clear_fp_database()
+        print("[✓] Clearing databases complete")
+    except:
+        print("[⚠] Error clearing databases")
