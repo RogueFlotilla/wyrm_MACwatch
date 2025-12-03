@@ -93,7 +93,7 @@ def parse_airodump_csv(csv_path, oui_dictionary):
 
 # Add or update a device to the database
 def add_device(mac: str, rssi: int = None, source: str = None, manufacturer: str = None):
-    # mac = hash_addr(mac) # Hash mac w/ salt; Comment out to deanonymize
+    mac = hash_addr(mac) # Hash mac w/ salt; Comment out to deanonymize
     ts = time.time()  # Unix Timestamp; Comment out next line to keep unformatted
     # ts = datetime.fromtimestamp(ts).strftime("%Y-%m-%d %H:%M:%S.%f")
     connection = sqlite3.connect(WIFI_DATABASE_PATH)
