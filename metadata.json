@@ -1,0 +1,29 @@
+{
+  "databases": {
+    "wifi_devices": {
+      "tables": {
+        "wifi_devices": {
+          "row_classes": {
+            "manufacturer": {
+              "randomized": "randomized"
+            }
+          }
+        }
+      }
+    },
+    "flagged_persons": {
+      "tables": {
+        "flagged_persons": {
+          "row_classes": {
+            "seen": {
+              "1": "highlight"
+            }
+          }
+        }
+      }
+    }
+  },
+  "extra_css_urls": [
+    "/css/datasettes.css"
+  ]
+}

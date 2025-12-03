@@ -6,6 +6,8 @@ sudo apt install -y aircrack-ng iw sqlite3
 
 ## SET MONITOR MODE
 # Ensure alfa0 exists
+iw dev # sometimes triggers Alfa to populate
+
 if ! ip link show alfa0 > /dev/null 2>&1; then
     echo "Error: alfa0 not found. Unplug and replug in the Alfa."
     exit 1
@@ -30,3 +32,9 @@ sudo systemctl start NetworkManager
 echo "Monitor mode should be enabled on alfa0."
 iw dev alfa0 info
 
+## RUN WYRM_MACWATCH
+# Run Capture
+# python3 WifiCapture.py
+
+# Run datasette
+# datasette serve /opt/wyrm/MACwatch/Database/*.db

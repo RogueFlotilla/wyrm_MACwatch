@@ -1,0 +1,7 @@
+tr.highlight {
+    background-color: #ffcccc !important; /* Light red for highlighted rows */
+}
+
+tr.randomized {
+    background-color: #f0f0f0 !important; /* Grey for ransomized rows */
+}
