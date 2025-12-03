@@ -1,10 +1,12 @@
 #!/bin/bash
 
-sudo apt install pipx
-sudo pipx ensurepath
+apt install -y python3-venv python3-pip
 
-# Install datasette globally via pipx
-pipx install datasette
+# Provision Virtual Environment
+python3 -m venv ~/datasette-venv
+source ~/datasette-venv/bin/activate
+pip install datasette
 
-# Run datasette
-datasette serve /opt/wyrm/MACwatch/Database/*.db --static css:/home/deb-uloq/source/repos/wyrm_MACwatch/DATABASES
+# Create log directory
+mkdir -p /opt/wyrm/MACwatch/logs/
+

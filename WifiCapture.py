@@ -7,8 +7,10 @@ import sqlite3
 import subprocess
 import threading
 import time
+from datetime import datetime
 from pathlib import Path
 import DATABASES.CreateDatabases as CreateDatabase
+import DATABASES.variables as variable
 
 # ------------------------------------------ VARIABLES ------------------------------------------ #
 INTERFACE = "alfa0"
@@ -85,14 +87,15 @@ def parse_airodump_csv(csv_path, oui_dictionary):
 
         # Add to database
         try:
-            add_device(mac=mac, rssi=rssi, source="wifi", manufacturer=vendor)
+            add_device(mac=mac, rssi=rssi, source="Airodump-ng", manufacturer=vendor)
         except sqlite3.Error as db_err:
             print(f"Database error for MAC {mac}: {db_err}")
 
 # Add or update a device to the database
 def add_device(mac: str, rssi: int = None, source: str = None, manufacturer: str = None):
     # mac = hash_addr(mac) # Hash mac w/ salt; Comment out to deanonymize
-    ts = time.time()
+    ts = time.time()  # Unix Timestamp; Comment out next line to keep unformatted
+    ts = datetime.fromtimestamp(ts).strftime("%Y-%m-%d %H:%M:%S.%f")
     connection = sqlite3.connect(WIFI_DATABASE_PATH)
     cursor = connection.cursor()
     cursor.execute("SELECT id FROM wifi_devices WHERE mac=?", (mac,))
@@ -160,9 +163,10 @@ def associate_vendor(mac, oui_dictionary):
 
 ## PACKET CAPTURE FUNCTION
 def capture():
-    print(f"\n[+] Starting airodump-ng capture...")
-    print("[ ] Screen output is caputred by devnull to increase speed")
-    print(f"[ ] Check current database entries with 'sqlite3 {WIFI_DATABASE_PATH}'")
+    print(f"[⋯] Starting airodump-ng capture...")
+    print("[i] Screen output is caputred by devnull to increase speed")
+    print("[i] Airodump-ng capture stored at /opt/wyrm/MACwatch/logs/airodump-*.csv.")
+    print(f"[i] Check current database entries with 'sqlite3 {WIFI_DATABASE_PATH}'")
 
     oui_dictionary = load_oui_csv(CSV_DATA_PATH)
 
@@ -170,7 +174,7 @@ def capture():
         "sudo",
         "airodump-ng",
         "--manufacturer",      # optional, gives vendor
-        "--write", "/tmp/airodump",
+        "--write", "/opt/wyrm/MACwatch/logs/airodump",
         "--output-format", "csv",
         INTERFACE
     ]
@@ -181,10 +185,8 @@ def capture():
         stderr=subprocess.DEVNULL
     )
 
-    # csv_path = Path("/tmp/airodump-01.csv")
-
     def get_latest_airodump_csv():
-        files = sorted(Path("/tmp").glob("airodump-*.csv"))
+        files = sorted(Path("/opt/wyrm/MACwatch/logs/").glob("airodump-*.csv"))
         if not files:
             return None
         return files[-1]  # newest file
@@ -201,11 +203,8 @@ def capture():
         time.sleep(1)       
 
 def abort_run():
-    print("\n[!] Stopping capture...")
-    print("[!] CTRL+C received. Exiting cleanly...")
-    stop_event.set()
-    print("[+] Shutdown complete.")
-    
+    print("\n[⋯] CTRL+C received. Exiting cleanly...")
+    print("[⋯] Stopping capture...")
 
 ## MAIN FUNCTION
 if __name__ == "__main__":

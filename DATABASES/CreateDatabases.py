@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 
 import csv
+import os
 import sqlite3
-import variables as variable
+from . import variables as variable
 from pathlib import Path
 
 ## CREATE WIFI DATABASE
@@ -13,8 +14,8 @@ def initialize_wifi_database():
         CREATE TABLE IF NOT EXISTS wifi_devices (
             id INTEGER PRIMARY KEY,
             mac TEXT UNIQUE,
-            first_seen FLOAT,
-            last_seen FLOAT,
+            first_seen REAL,
+            last_seen REAL,
             rssi INTEGER,
             source TEXT,
             manufacturer TEXT
@@ -32,8 +33,8 @@ def initialize_bt_database():
         CREATE TABLE IF NOT EXISTS bt_devices (
             id INTEGER PRIMARY KEY,
             mac TEXT UNIQUE,
-            first_seen FLOAT,
-            last_seen FLOAT,
+            first_seen REAL,
+            last_seen REAL,
             rssi INTEGER,
             source TEXT,
             manufacturer TEXT
@@ -89,7 +90,7 @@ if __name__ == "__main__":
         print("[⋯] Creating all databases...")
         initialize_wifi_database()
         initialize_bt_database()
-        initialize_fp_database
+        initialize_fp_database()
         print("[✓] Creating databases complete")
     except:
         print("[⚠] Error creating databases")

@@ -1,7 +1,15 @@
+/* Highlight flagged persons (seen = 1) */
 tr.highlight {
-    background-color: #ffcccc !important; /* Light red for highlighted rows */
+    background-color: #ffcccc !important; /* light red */
 }
 
+/* Highlight randomized MAC addresses */
 tr.randomized {
-    background-color: #f0f0f0 !important; /* Grey for ransomized rows */
+    background-color: #f0f0f0 !important; /* light grey */
+}
+
+/* Optional: add hover effect */
+tr.highlight:hover,
+tr.randomized:hover {
+    background-color: #ffe6e6 !important;
 }
