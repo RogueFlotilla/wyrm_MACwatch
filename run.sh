@@ -26,7 +26,7 @@ sudo systemctl stop NetworkManager
 # Set Alfa to monitor mode
 ip link set alfa0 down
 iw dev alfa0 set type monitor
-ip link set alfa0 up
+ip link set alfa0 uphttps://www.aircrack-ng.org/doku.php?id=airodump-ng
 
 # Restart Network Manager
 sudo systemctl start NetworkManager
