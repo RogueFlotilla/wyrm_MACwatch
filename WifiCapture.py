@@ -5,12 +5,10 @@ import hashlib
 import re
 import sqlite3
 import subprocess
-import threading
 import time
 from datetime import datetime
 from pathlib import Path
 import DATABASES.CreateDatabases as CreateDatabase
-import DATABASES.variables as variable
 
 # ------------------------------------------ VARIABLES ------------------------------------------ #
 INTERFACE = "alfa0"
