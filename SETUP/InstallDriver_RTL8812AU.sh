@@ -44,9 +44,6 @@ make dkms_install
 modprobe -r 8812au 2>/dev/null || true
 modprobe 8812au
 
-## CONFIRM DRIVER (visual)
-ip link
-
 ## ENSURE ALFA ALWAYS NAMES SAME
 # Remove any existing rules for this MAC, name, or manufacturer
 sed -i "\|$alfaMAC|d" "$ruleFile" 2>/dev/null || true

@@ -15,3 +15,5 @@ iw dev
 ## CONFIRM MONITOR MODE SET
 iw dev
 
+
+
