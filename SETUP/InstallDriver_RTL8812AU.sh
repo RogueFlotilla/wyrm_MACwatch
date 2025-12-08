@@ -63,3 +63,6 @@ udevadm trigger
 
 # Output to user
 echo "Please unplug and replug the adapter to apply. Then use \"sudo iw dev\" to confirm alfa0 exists."
+
+
+
